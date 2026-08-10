@@ -1,3 +1,5 @@
+import sys
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -23,53 +25,19 @@ for code in stock_total_code['代码']:
         break
 stock_zh_a_daily_qfq_df = ak.stock_zh_a_daily(symbol=stock_code, adjust="qfq")
 stock_data = pd.DataFrame(stock_zh_a_daily_qfq_df)
-stock_data = stock_data.iloc[::-1]
-stock_data=stock_data.reset_index(drop=True)
 stock_data['date'] = pd.to_datetime(stock_data['date'])
 
 'k线图+均线和布林线'
 'MA'
-def MA_price(data,period):
-    length_stock=len(data)
-    ma_list=[]
-    for i in range(length_stock):
-        if i<length_stock-period+1:
-            ma=sum(data.loc[i:i+period-1,'close'])/period
-            ma_list.append(ma)
-        else:
-            ma=sum(data.loc[i:,'close'])/(length_stock-i)
-            ma_list.append(ma)
-    return ma_list
-
-stock_data['MA5']=MA_price(stock_data,5)
-stock_data['MA10']=MA_price(stock_data,10)
-stock_data['MA30']=MA_price(stock_data,30)
-stock_data['MA60']=MA_price(stock_data,60)
-stock_data['MA120']=MA_price(stock_data,120)
+stock_data['MA5']=ma.MA_price(stock_data,5)
+stock_data['MA10']=ma.MA_price(stock_data,10)
+stock_data['MA30']=ma.MA_price(stock_data,30)
+stock_data['MA60']=ma.MA_price(stock_data,60)
+stock_data['MA120']=ma.MA_price(stock_data,120)
 
 '布林线'
-def bull(data,period):
-    length_stock = len(data)
-    bull_list_middle=[]
-    bull_list_upper=[]
-    bull_list_lower=[]
-    data_avg=(data['close']+data['high']+data['low'])/3
-    for i in range(length_stock):
-        if i<length_stock-period+1:
-            mean=np.mean(data_avg.iloc[i:i+period-1])
-            std=np.std(data_avg.iloc[i:i+period-1])
-        else:
-            mean=np.mean(data_avg.iloc[i:])
-            std=np.std(data_avg.iloc[i:])
-        bull_middle = mean
-        bull_upper = mean + 2 * std
-        bull_lower = mean - 2 * std
-        bull_list_middle.append(bull_middle)
-        bull_list_upper.append(bull_upper)
-        bull_list_lower.append(bull_lower)
-    return bull_list_middle, bull_list_upper, bull_list_lower
 
-stock_data['bull_middle'],stock_data['bull_upper'],stock_data['bull_lower']=bull(stock_data,20)
+stock_data['bull_middle'],stock_data['bull_upper'],stock_data['bull_lower']=ma.bull(stock_data,20)
 
 'k线'
 kline_data = []
@@ -91,8 +59,7 @@ kline_price = (
         xaxis_opts=opts.AxisOpts(
             name='日期',
             name_location="end",
-            is_scale=True,
-            is_inverse=True),
+            is_scale=True),
         yaxis_opts=opts.AxisOpts(
             name='股价/（元）',
             is_scale=True),
@@ -218,25 +185,14 @@ bar_vol = (
     .add_yaxis(series_name="volume", y_axis=vol_bar_data, label_opts=opts.LabelOpts(is_show=False))
     .set_global_opts(
         legend_opts=opts.LegendOpts(is_show=False),
-        xaxis_opts=opts.AxisOpts(is_scale=True, axislabel_opts=opts.LabelOpts(is_show=False),is_inverse=True),
+        xaxis_opts=opts.AxisOpts(is_scale=True, axislabel_opts=opts.LabelOpts(is_show=False)),
         yaxis_opts=opts.AxisOpts(is_scale=True, name="volume", name_gap=15, split_number=3),
     )
 )
 
 '成交量均线'
-def MA_volume(data,period):
-    length_stock=len(data)
-    ma_list=[]
-    for i in range(length_stock):
-        if i<length_stock-period+1:
-            ma=sum(data.loc[i:i+period-1,'volume'])/period
-            ma_list.append(ma)
-        else:
-            ma=sum(data.loc[i:,'volume'])/(length_stock-i)
-            ma_list.append(ma)
-    return ma_list
-MAV5=MA_volume(stock_data,5)
-MAV10=MA_volume(stock_data,10)
+MAV5=ma.MA_volume(stock_data,5)
+MAV10=ma.MA_volume(stock_data,10)
 
 line_vol=(
     Line()
@@ -257,11 +213,13 @@ line_vol=(
 chart_vol = bar_vol.overlap(line_vol)
 
 'MACD'
-stock_macd=pd.merge(ma.MACD_DIF(stock_data,stock_code,'close'),ma.MACD_DEA(stock_data,stock_code,'close'),on='date')
-macd_data=stock_macd['MACD_dif']-stock_macd['MACD_dea']
+stock_macd=ma.MACD_DEA(stock_data,'close')
+stock_macd = stock_macd.iloc[::-1]
+stock_macd = stock_macd.reset_index(drop=True)
+macd_data=stock_macd['macd_dif']-stock_macd['macd_dea']
 macd_bar_data=[]
 for i,row in stock_macd.iterrows():
-    if row['MACD_dif']>=row['MACD_dea']:
+    if row['macd_dif']>=row['macd_dea']:
         macd_color='#ef232a'
     else:
         macd_color='#00FFFF'
@@ -277,7 +235,7 @@ bar_macd = (
     .add_yaxis(series_name="MACD柱", y_axis=macd_bar_data, label_opts=opts.LabelOpts(is_show=False))
     .set_global_opts(
         legend_opts=opts.LegendOpts(is_show=False),
-        xaxis_opts=opts.AxisOpts(is_scale=True, name="日期", name_location="end", name_gap=10,is_inverse=True),
+        xaxis_opts=opts.AxisOpts(is_scale=True, name="日期", name_location="end", name_gap=10),
         yaxis_opts=opts.AxisOpts(is_scale=True, name="MACD", name_gap=15, split_number=3),
     )
 )
@@ -285,13 +243,13 @@ bar_macd = (
 line_macd = (
     Line()
     .add_xaxis(xaxis_data=stock_data['date'].dt.strftime('%Y-%m-%d').tolist())
-    .add_yaxis("DIF", stock_macd['MACD_dif'].round(3).tolist(),
+    .add_yaxis("DIF", stock_macd['macd_dif'].round(3).tolist(),
                symbol_size=3,
                itemstyle_opts=opts.ItemStyleOpts(color="white"),
                z=3,
                label_opts=opts.LabelOpts(is_show=False),
                linestyle_opts=opts.LineStyleOpts(color="white"))
-    .add_yaxis("DEA", stock_macd['MACD_dea'].round(3).tolist(),
+    .add_yaxis("DEA", stock_macd['macd_dea'].round(3).tolist(),
                symbol_size=3,
                itemstyle_opts=opts.ItemStyleOpts(color="yellow"),
                z=3,
