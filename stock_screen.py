@@ -7,6 +7,7 @@ from pyecharts.charts import Kline,Line,Bar,Grid
 import macd as ma
 from streamlit_echarts import st_pyecharts
 import sys
+import io
 
 @st.cache_data
 def load_stock_overview():
@@ -63,6 +64,8 @@ code_map = dict(zip(stock_overview['num_code'], stock_overview['代码']))
 total_stock_code = total_stock_code.astype(str).str.extract(r'(\d+)')[0].str.zfill(6)
 total_stock_code = total_stock_code.map(code_map).dropna()
 
+if "filter_result" not in st.session_state:
+    st.session_state.filter_result = None
 
 if st.button("开始筛选"):
     result=[]
@@ -100,11 +103,23 @@ if st.button("开始筛选"):
                 continue
         st.success('%s符合筛选条件'%(stock_code))
         result.append({'代码':stock_code})
-    result=pd.DataFrame(result)
-    result.to_excel('%s筛选结果.xlsx'%uploaded_file.name)
+    st.session_state.filter_result = pd.DataFrame(result)
+    st.success("已全部筛选完")
+
+if (st.session_state.filter_result is not None):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        st.session_state.filter_result.to_excel(writer, index=False)
+    excel_data = output.getvalue()
+    st.download_button(
+        label="📥 下载Excel文件",
+        data=excel_data,
+        file_name=f"{uploaded_file.name}_筛选结果.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
 
 
-    st.success('已全部筛选完')
+
 
 
 
