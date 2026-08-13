@@ -30,7 +30,7 @@ if use_inc:
 "macd大幅上涨（暂不使用）"
 use_macd = st.sidebar.checkbox("macd大幅上涨（暂不使用）", value=False)
 if use_macd:
-    macd_change=st.number_input('请输入macd变化的幅度：',value=5,step=0.1)
+    macd_change=st.number_input('请输入macd变化的幅度：',value=5.0,step=0.1)
 '股价偏离20日均线(暂不使用)'
 use_ma20=st.sidebar.checkbox("股票偏离MA20的标准差（暂不使用）", value=False)
 if use_ma20:
