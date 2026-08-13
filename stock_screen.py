@@ -13,23 +13,6 @@ def load_stock_overview():
     return pd.read_excel('股票代码总览.xlsx')
 stock_overview = load_stock_overview()
 
-st.markdown(
-    """
-    <style>
-    /* 修改主内容区域背景 */
-    .stApp {
-        background-color: #0E1117;
-        color: #FAFAFA;
-    }
-    /* 修改侧边栏背景 */
-    section[data-testid="stSidebar"] {
-        background-color: #262730;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 st.title('潜力股票筛选')
 
 st.sidebar.header("筛选条件设置")

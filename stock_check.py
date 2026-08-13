@@ -14,22 +14,7 @@ def load_stock_overview():
 
 st.title('股票数据查询')
 st.set_page_config(layout="wide")
-st.markdown(
-    """
-    <style>
-    /* 修改主内容区域背景 */
-    .stApp {
-        background-color: #0E1117;
-        color: #FAFAFA;
-    }
-    /* 修改侧边栏背景 */
-    section[data-testid="stSidebar"] {
-        background-color: #262730;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.write('建议右上角切换深色模式使用')
 stock_total_code=load_stock_overview()
 
 st.write('输入股票代码')
