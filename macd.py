@@ -51,10 +51,70 @@ def MACD_change(data,type):
     change=1000*(today_change-yesterday_change)
     return change
 
-'股价上涨'
-def price_inc(data):
-    recent_5_days_inc = (data['close'].diff() > 0).tail(5)
-    if recent_5_days_inc.sum() >= 4:
-        return 1
-    else:
-        return 0
+# '股价上涨'
+# def price_inc(data,period,ma_period,ma_inc_times,ma_above_times):
+#     if len(data) < period+1:
+#         return False
+#     ma = MA_price(data,ma_period)
+#     ma_inc = ma > ma.shift(1)
+#     recent_ma_inc = ma_inc.tail(period)
+#     ma_inc_days = recent_ma_inc.sum()
+#     if ma_inc_days < ma_inc_times:
+#         return False
+#     recent_close = data['close'].tail(period)
+#     recent_ma = ma.tail(period)
+#     days_above_ma = (recent_close > recent_ma).sum()
+#     return bool(days_above_ma >= ma_above_times)
+
+'股价上涨及均线偏离限制(最多超过c天)'
+def price_inc(data, period, ma_period, ma_inc_times):
+    if len(data) < period + 1:
+        return False
+    ma = MA_price(data, ma_period)
+    ma_inc = ma > ma.shift(1)
+    recent_ma_inc = ma_inc.tail(period)
+    if recent_ma_inc.sum() < ma_inc_times:
+        return False
+    return True
+
+
+
+
+'股票偏离20日均线标准差'
+def std_ma20(data,period):
+    if len(data) < period+1:
+        return 100000
+    data['ma20']=MA_price(data,20)
+    bias=(data['close']-data['ma20'])/data['ma20']
+    std = bias.tail(period).std()
+    return std
+
+'atr变化'
+    # def atr(data,period,atr,times):
+    #     high_low=data['high']-data['low']
+    #     high_close_pre=abs(data['high']-data['close'].shift(1))
+    #     low_close_pre=abs(data['low']-data['close'].shift(1))
+    #     data['atr']=max(high_low,high_close_pre,low_close_pre)
+    #     data['atr_10']=data['atr'].rolling(10).mean()
+    #     data['atr_10']=data['atr'].tail(period)
+    #     atr/=100
+    #     judge=data['atr_10']>atr
+    #     if judge>=times:
+    #         return False
+    #     else:
+    #         return True
+
+
+def atr(data, period=20, atr_pct_limit=5.0, times=3):
+    high_low = data['high'] - data['low']
+    high_close_pre = (data['high'] - data['close'].shift(1)).abs()
+    low_close_pre = (data['low'] - data['close'].shift(1)).abs()
+    tr = np.maximum(high_low, np.maximum(high_close_pre, low_close_pre))
+    atr = tr.rolling(10).mean()
+    atr_pct = (atr / data['close'].shift(1)) * 100
+    exceed_days = (atr_pct.tail(period) > atr_pct_limit).sum()
+    if exceed_days >= times:
+        return False
+    return True
+
+
