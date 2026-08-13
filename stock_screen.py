@@ -18,21 +18,21 @@ st.title('潜力股票筛选')
 
 st.sidebar.header("筛选条件设置")
 "收盘价低于等于布林线上轨（暂不使用）"
-use_bull = st.sidebar.checkbox("收盘价低于等于布林线上轨", value=False)
+use_bull = st.sidebar.checkbox("收盘价低于等于布林线上轨（暂不使用）", value=False)
 if use_bull:
     bull_period=st.number_input('请输入布林线周期：',value=20)
 "a日内b次均线MAc上涨"
 use_inc = st.sidebar.checkbox("a日内b次均线MAc上涨", value=False)
 if use_inc:
     price_inc_length=st.number_input('请输入判断周期时间a：',value=30)
-    ma_inc_times=st.number_input('请输入均线上涨的次数b：:',value=20)
-    ma_period=st.number_input('请输入均线周期c：',value=10)
+    ma_inc_times=st.number_input('请输入均线上涨的次数b：:',value=22)
+    ma_period=st.number_input('请输入均线周期c：',value=5)
 "macd大幅上涨（暂不使用）"
-use_macd = st.sidebar.checkbox("macd大幅上涨", value=False)
+use_macd = st.sidebar.checkbox("macd大幅上涨（暂不使用）", value=False)
 if use_macd:
     macd_change=st.number_input('请输入macd变化的幅度：',value=5,step=0.1)
 '股价偏离20日均线(暂不使用)'
-use_ma20=st.sidebar.checkbox("股票偏离MA20的标准差", value=False)
+use_ma20=st.sidebar.checkbox("股票偏离MA20的标准差（暂不使用）", value=False)
 if use_ma20:
     ma20_period=st.number_input('计算标准差的周期',value=120)
     ma20_std = st.number_input('请输入偏离MA20的标准差：', value=0.1,step=0.01)
